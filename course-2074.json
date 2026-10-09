@@ -2,8 +2,8 @@
   "schema": 1,
   "courseId": 2074,
   "repository": "LearningOS/2026a-oscamp-base-jjh11737",
-  "commit": "ec4300fb6f2d4a0de598421bba31c4083801e66d",
-  "score": 3,
+  "commit": "9b4e5b11a4cbafb2cfe2b8ed7b4363ba7514e0b4",
+  "score": 7,
   "totalScore": 100,
   "exercises": [
     {
@@ -16,9 +16,9 @@
     {
       "name": "mutex_counter",
       "max": 4,
-      "score": 0,
-      "status": "fail",
-      "exitCode": 101
+      "score": 4,
+      "status": "pass",
+      "exitCode": 0
     },
     {
       "name": "channel",
@@ -176,9 +176,9 @@
     }
   ],
   "student": "jjh11737",
-  "runId": "37912886361",
+  "runId": "37915420897",
   "runAttempt": "1",
   "upload": {
-    "status": "accepted"
+    "status": "pending"
   }
 }
