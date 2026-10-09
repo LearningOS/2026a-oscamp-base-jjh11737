@@ -35,6 +35,7 @@
 use std::cell::RefCell;
 #[allow(unused_imports)]
 use std::thread;
+use std::thread::{sleep, sleep_ms};
 #[allow(unused_imports)]
 use std::time::Duration;
 
@@ -92,6 +93,7 @@ use std::time::Duration;
 /// ```
 
 /// Example: Scoped threads (Rust 1.63+).
+/// 普通线程要求所有权，但是有时候我们只是想借用一下
 ///
 /// Scoped threads allow borrowing stack data without moving ownership.
 /// The threads are guaranteed to finish before the scope ends, so references
@@ -109,6 +111,7 @@ use std::time::Duration;
 ///         let h2 = s.spawn(|| b.iter().sum::<i32>());
 ///         (h1.join().unwrap(), h2.join().unwrap())
 ///     });
+///     // 这里就是因为我们的线程保证了在这个scope里面，编译器可以推断
 ///
 ///     // `a` and `b` are still accessible here.
 ///     println!("sum_a = {}, sum_b = {}", sum_a, sum_b);
@@ -123,7 +126,7 @@ use std::time::Duration;
 /// use std::cell::RefCell;
 /// use std::thread;
 ///
-/// thread_local! {
+/// thread_local! {                             // 声明一个局部变量
 ///     static THREAD_ID: RefCell<usize> = RefCell::new(0);
 /// }
 ///
@@ -157,7 +160,10 @@ pub fn double_in_thread(numbers: Vec<i32>) -> Vec<i32> {
     // TODO: Create a new thread to multiply each element of numbers by 2
     // Use thread::spawn and move closure
     // Use join().unwrap() to get result
-    todo!()
+    thread::spawn(move || {
+        numbers.iter().map(|x| x * 2).collect()
+    }).join().unwrap()
+
 }
 
 /// Sum two vectors in parallel, returning a tuple of two sums.
@@ -167,7 +173,13 @@ pub fn double_in_thread(numbers: Vec<i32>) -> Vec<i32> {
 pub fn parallel_sum(a: Vec<i32>, b: Vec<i32>) -> (i32, i32) {
     // TODO: Create two threads to sum a and b respectively
     // Join both threads to get results
-    todo!()
+    let s1 = thread::spawn(move || {
+        a.iter().sum()
+    });
+    let s2 = thread::spawn(move || {
+        b.iter().sum()
+    });
+    (s1.join().unwrap(), s2.join().unwrap())
 }
 
 // ============================================================================
@@ -185,7 +197,12 @@ pub fn named_sleeper(value: i32, ms: u64) -> i32 {
     // TODO: Create a thread builder with name "sleeper"
     // TODO: Spawn a thread that sleeps for `ms` milliseconds and returns `value`
     // TODO: Join the thread and return the value
-    todo!()
+    let builder = thread::Builder::new()
+        .name("sleeper".into());
+    builder.spawn(move || {                 // 由于builder的spawn不一定成功，返回的是Result
+        sleep(Duration::from_millis(ms));
+        value
+    }).unwrap().join().unwrap()
 }
 
 thread_local! {
@@ -200,7 +217,9 @@ thread_local! {
 /// Hint: Use `THREAD_COUNT.with(|cell| { ... })` to access the thread‑local variable.
 pub fn increment_thread_local() -> usize {
     // TODO: Use THREAD_COUNT.with to increment and return the new count
-    todo!()
+    THREAD_COUNT.with(|count| {*count.borrow_mut() += 1;
+    *count.borrow()
+    })
 }
 
 /// Spawn two threads using a **scoped thread** to compute the sum of two slices without moving ownership.
@@ -216,7 +235,17 @@ pub fn scoped_slice_sum(a: &[i32], b: &[i32]) -> (i32, i32) {
     // TODO: Use thread::scope to spawn two threads
     // TODO: Each thread sums its slice
     // TODO: Wait for both threads and return the results
-    todo!()
+    thread::scope(
+        |s| {
+            let s1 = s.spawn( || {
+                a.iter().sum()
+            });
+            let s2 = s.spawn( || {
+                b.iter().sum()
+            });
+            (s1.join().unwrap(), s2.join().unwrap())
+        }
+    )
 }
 
 /// Handle a possible panic in a spawned thread.
@@ -233,7 +262,17 @@ pub fn scoped_slice_sum(a: &[i32], b: &[i32]) -> (i32, i32) {
 pub fn handle_panic(value: i32, should_panic: bool) -> Result<i32, ()> {
     // TODO: Spawn a thread that either panics or returns value
     // TODO: Join and map the result appropriately
-    todo!()
+    let t = thread::spawn( move ||{
+        if should_panic {
+            panic!("oops");
+        } else {
+            value
+        }
+    });
+    match t.join() {
+        Ok(val) => Ok(val),
+        Err(_) => Err(()),
+    }
 }
 
 #[cfg(test)]
