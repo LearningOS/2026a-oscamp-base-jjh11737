@@ -45,7 +45,13 @@ pub unsafe extern "C" fn my_memcpy(dst: *mut u8, src: *const u8, n: usize) -> *m
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn my_memset(dst: *mut u8, c: u8, n: usize) -> *mut u8 {
     // TODO: Implement memset
-    todo!()
+    let ret = dst;
+    unsafe {
+        for i in 0..n {
+            *dst.add(i) = c;
+        }
+    }
+    ret
 }
 
 /// Copy `n` bytes from `src` to `dst`, correctly handling overlapping memory.
@@ -58,7 +64,20 @@ pub unsafe extern "C" fn my_memset(dst: *mut u8, c: u8, n: usize) -> *mut u8 {
 pub unsafe extern "C" fn my_memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
     // TODO: Implement memmove
     // Hint: when dst > src and regions overlap, copy backwards (from end to start)
-    todo!()
+    let ret = dst;
+    unsafe {
+        let dst_ref = dst as *const u8;
+        if dst_ref > src && src.add(n) > dst_ref {
+            for i in (0..n).rev() {
+                *dst.add(i) = *src.add(i);
+            }
+        } else {
+            for i in 0..n {
+                *dst.add(i) = *src.add(i);
+            }
+        }
+    }
+    ret
 }
 
 /// Return the length of a null-terminated byte string, excluding the trailing null.
@@ -68,7 +87,13 @@ pub unsafe extern "C" fn my_memmove(dst: *mut u8, src: *const u8, n: usize) -> *
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn my_strlen(s: *const u8) -> usize {
     // TODO: Implement strlen
-    todo!()
+    let mut length: usize = 0;
+    unsafe {
+        while *s.add(length) != 0 {
+            length += 1;
+        }
+    }
+    length
 }
 
 /// Compare two null-terminated byte strings.
@@ -83,7 +108,20 @@ pub unsafe extern "C" fn my_strlen(s: *const u8) -> usize {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn my_strcmp(s1: *const u8, s2: *const u8) -> i32 {
     // TODO: Implement strcmp
-    todo!()
+    let mut length: usize = 0;
+    unsafe {
+        loop {
+            let ch1 = *s1.add(length) as i32;
+            let ch2 = *s2.add(length) as i32;
+            if (ch1 != ch2) {
+                return ch1 - ch2;
+            }
+            if ch1 == 0 {
+                return ch1 - ch2;
+            }
+            length += 1;
+        }
+    }
 }
 
 // ============================================================
