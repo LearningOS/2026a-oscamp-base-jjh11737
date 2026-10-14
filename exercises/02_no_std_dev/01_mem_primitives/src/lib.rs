@@ -27,7 +27,13 @@
 pub unsafe extern "C" fn my_memcpy(dst: *mut u8, src: *const u8, n: usize) -> *mut u8 {
     // TODO: Implement memcpy
     // Hint: read bytes from src one by one and write to dst
-    todo!()
+    let ret = dst;
+    unsafe {
+        for i in 0..n {
+            *dst.add(i) = *src.add(i);
+        }
+    }
+    ret
 }
 
 /// Set `n` bytes starting at `dst` to the value `c`.
